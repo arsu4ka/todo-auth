@@ -9,7 +9,7 @@ type User struct {
 	ID       uint
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"password" gorm:"unique"`
 }
 
 func (u *User) Validate() error {
