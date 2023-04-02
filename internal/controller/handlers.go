@@ -23,7 +23,7 @@ func (c *Controller) getAllTodos() gin.HandlerFunc {
 
 func (c *Controller) createTodo() gin.HandlerFunc {
 	var request struct {
-		Task string `json:"task"`
+		Task string `json:"task" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
 		if err := ctx.ShouldBindJSON(&request); err != nil {
