@@ -18,3 +18,20 @@ func (td *ToDoRepo) GetByUser(userID uint) ([]*models.ToDo, error) {
 func (td *ToDoRepo) Create(todo *models.ToDo) error {
 	return td.db.Create(todo).Error
 }
+
+func (td *ToDoRepo) UpdateStatus(id uint, setTo bool) error {
+	result := td.db.Model(&models.ToDo{}).Where("id = ?", id).Update("completed", setTo)
+	return result.Error
+}
+
+func (td *ToDoRepo) UpdateFull(todo *models.ToDo, id uint) error {
+	var oldTodo models.ToDo
+	result := td.db.First(&oldTodo, id)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	oldTodo.Task = todo.Task
+	oldTodo.Completed = todo.Completed
+	return td.db.Save(&oldTodo).Error
+}
