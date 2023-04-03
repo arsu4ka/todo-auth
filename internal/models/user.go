@@ -21,10 +21,14 @@ func (u *User) Validate() error {
 	)
 }
 
-func (u *User) HidePassword() {
-	u.Password = ""
-}
-
 func (u *User) HasPassword(password string) bool {
 	return u.Password == password
+}
+
+func (u *User) Sanitize() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        u.ID,
+		"full_name": u.FullName,
+		"email":     u.Email,
+	}
 }
