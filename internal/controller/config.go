@@ -16,8 +16,8 @@ type Config struct {
 }
 
 func DefaultConfig() *Config {
-	tokenExpiration, _ := strconv.Atoi(os.Getenv("TOKEN_EXPIRATION_HRS"))
 	godotenv.Load(".env")
+	tokenExpiration, _ := strconv.Atoi(os.Getenv("TOKEN_EXPIRATION_HRS"))
 
 	return &Config{
 		Port:            os.Getenv("PORT"),
