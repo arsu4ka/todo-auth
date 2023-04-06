@@ -8,8 +8,8 @@ import (
 type User struct {
 	ID       uint
 	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	Password string `json:"password" gorm:"unique"`
+	Email    string `json:"email" gorm:"unique"`
+	Password string `json:"password"`
 }
 
 func (u *User) Validate() error {
@@ -23,12 +23,4 @@ func (u *User) Validate() error {
 
 func (u *User) HasPassword(password string) bool {
 	return u.Password == password
-}
-
-func (u *User) Sanitize() map[string]interface{} {
-	return map[string]interface{}{
-		"id":        u.ID,
-		"full_name": u.FullName,
-		"email":     u.Email,
-	}
 }
