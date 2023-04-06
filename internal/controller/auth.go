@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/arsu4ka/todo-auth/internal/controller/resptypes"
 	"github.com/arsu4ka/todo-auth/internal/middleware"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
@@ -21,8 +22,7 @@ func (c *Controller) registerHandler() gin.HandlerFunc {
 			return
 		}
 
-		user.HidePassword()
-		ctx.JSON(http.StatusCreated, &user)
+		ctx.JSON(http.StatusCreated, resptypes.NewUserResponse(&user))
 	}
 }
 
