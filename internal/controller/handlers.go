@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/arsu4ka/todo-auth/internal/controller/resptypes"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,11 @@ func (c *Controller) getAllTodos() gin.HandlerFunc {
 			return
 		}
 
-		ctx.JSON(http.StatusOK, todos)
+		todosSanitized := []*resptypes.TodoResponse{}
+		for _, todo := range todos {
+			todosSanitized = append(todosSanitized, resptypes.NewTodoResponse(todo))
+		}
+		ctx.JSON(http.StatusOK, todosSanitized)
 	}
 }
 
@@ -44,5 +49,11 @@ func (c *Controller) createTodo() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, gin.H{"status": "success"})
+	}
+}
+
+func (c *Controller) UpdateTodoStatus() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
 	}
 }
