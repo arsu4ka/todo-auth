@@ -47,4 +47,5 @@ func (c *Controller) configureController() {
 	protected := c.router.Group("api/todo", middleware.JWTMiddleware(c.config.TokenSecret))
 	protected.POST("/", c.createTodo())
 	protected.GET("/", c.getAllTodos())
+	protected.PUT("/:id", c.updateTodo())
 }
