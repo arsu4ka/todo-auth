@@ -27,18 +27,16 @@ func (c *Controller) getAllTodos() gin.HandlerFunc {
 }
 
 func (c *Controller) createTodo() gin.HandlerFunc {
-	var request struct {
-		Task string `json:"task" binding:"required"`
-	}
 	return func(ctx *gin.Context) {
-		if err := ctx.ShouldBindJSON(&request); err != nil {
+		var newTodo models.ToDo
+		if err := ctx.ShouldBindJSON(&newTodo); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		userID := ctx.GetUint("userId")
 		todo := &models.ToDo{
-			Task:      request.Task,
+			Task:      newTodo.Task,
 			Completed: false,
 			UserID:    userID,
 		}
@@ -52,8 +50,27 @@ func (c *Controller) createTodo() gin.HandlerFunc {
 	}
 }
 
-func (c *Controller) UpdateTodoStatus() gin.HandlerFunc {
+func (c *Controller) updateTodo() gin.HandlerFunc {
+	var todoId struct {
+		ID uint `uri:"id" binding:"required"`
+	}
 	return func(ctx *gin.Context) {
+		if err := ctx.ShouldBindJSON(&todoId); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
+		var todo models.ToDo
+		if err := ctx.ShouldBindJSON(&todo); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := c.store.ToDo().UpdateFull(&todo, todoId.ID); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, todo)
 	}
 }
