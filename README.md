@@ -1,1 +1,1 @@
-# TODO REST API build with Go (Gin, GORM) using JWT
+# TODO REST API built with Go (Gin, GORM) using JWT
