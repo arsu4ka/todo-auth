@@ -61,7 +61,6 @@ func (c *Controller) loginHandler() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Header("Authorization", authToken)
-		ctx.JSON(http.StatusOK, gin.H{"status": "authenticated"})
+		ctx.JSON(http.StatusOK, gin.H{"status": "authenticated", "token": authToken})
 	}
 }
