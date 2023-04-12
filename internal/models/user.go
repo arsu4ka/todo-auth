@@ -7,9 +7,9 @@ import (
 
 type User struct {
 	ID       uint
-	FullName string `json:"full_name"`
-	Email    string `json:"email" gorm:"unique"`
-	Password string `json:"password"`
+	FullName string
+	Email    string `gorm:"unique"`
+	Password string
 }
 
 func (u *User) Validate() error {
