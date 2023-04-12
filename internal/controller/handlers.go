@@ -66,6 +66,10 @@ func (c *Controller) updateTodo() gin.HandlerFunc {
 			return
 		}
 
+		if todo.UserID != ctx.GetUint("userId") {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "you can edit only your todos"})
+		}
+
 		if err := c.store.ToDo().UpdateFull(&todo, todoId.ID); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
