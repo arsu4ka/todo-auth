@@ -27,17 +27,21 @@ func (c *Controller) getAllTodos() gin.HandlerFunc {
 }
 
 func (c *Controller) createTodo() gin.HandlerFunc {
+	type Request struct {
+		Task      string `json:"task" binding:"required"`
+		Completed bool   `json:"completed"`
+	}
 	return func(ctx *gin.Context) {
-		var newTodo models.ToDo
-		if err := ctx.ShouldBindJSON(&newTodo); err != nil {
+		var request Request
+		if err := ctx.ShouldBindJSON(&request); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		userID := ctx.GetUint("userId")
 		todo := &models.ToDo{
-			Task:      newTodo.Task,
-			Completed: false,
+			Task:      request.Task,
+			Completed: request.Completed,
 			UserID:    userID,
 		}
 
@@ -46,35 +50,54 @@ func (c *Controller) createTodo() gin.HandlerFunc {
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, gin.H{"status": "success"})
+		ctx.JSON(http.StatusCreated, resptypes.NewTodoResponse(todo))
 	}
 }
 
 func (c *Controller) updateTodo() gin.HandlerFunc {
-	var todoId struct {
+	type RequestUri struct {
 		ID uint `uri:"id" binding:"required"`
 	}
+	type RequestBody struct {
+		Task      string `json:"task" bindinig:"required"`
+		Completed bool   `json:"completed" bindinig:"required"`
+	}
 	return func(ctx *gin.Context) {
-		if err := ctx.ShouldBindJSON(&todoId); err != nil {
+		var requestBody RequestBody
+		var requestUri RequestUri
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		var todo models.ToDo
-		if err := ctx.ShouldBindJSON(&todo); err != nil {
+		if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		todo, err := c.store.ToDo().FindById(requestUri.ID)
+		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		if todo.UserID != ctx.GetUint("userId") {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "you can edit only your todos"})
-		}
-
-		if err := c.store.ToDo().UpdateFull(&todo, todoId.ID); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, todo)
+		updatedTodo := &models.ToDo{
+			ID:        requestUri.ID,
+			Task:      requestBody.Task,
+			Completed: requestBody.Completed,
+			UserID:    todo.UserID,
+		}
+
+		if err := c.store.ToDo().UpdateFull(updatedTodo); err != nil {
+			ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+
+		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(updatedTodo))
 	}
 }
