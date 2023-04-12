@@ -101,3 +101,34 @@ func (c *Controller) updateTodo() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(updatedTodo))
 	}
 }
+
+func (c *Controller) deleteTodo() gin.HandlerFunc {
+	type RequestUri struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	return func(ctx *gin.Context) {
+		var requestUri RequestUri
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		todo, err := c.store.ToDo().FindById(requestUri.ID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if todo.UserID != ctx.GetUint("userId") {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "you can delete only your todos"})
+			return
+		}
+
+		if err := c.store.ToDo().Delete(requestUri.ID); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
+		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(todo))
+	}
+}
