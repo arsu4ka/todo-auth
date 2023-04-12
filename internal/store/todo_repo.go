@@ -30,5 +30,5 @@ func (td *ToDoRepo) UpdateFull(updatedTodo *models.ToDo) error {
 }
 
 func (td *ToDoRepo) Delete(id uint) error {
-	return nil
+	return td.db.Delete(&models.ToDo{}, id).Error
 }
