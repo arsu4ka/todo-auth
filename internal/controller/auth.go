@@ -10,28 +10,40 @@ import (
 )
 
 func (c *Controller) registerHandler() gin.HandlerFunc {
+	type Request struct {
+		FullName string `json:"full_name" binding:"required"`
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
 	return func(ctx *gin.Context) {
-		var user models.User
-		if err := ctx.ShouldBindJSON(&user); err != nil {
+		var request Request
+		if err := ctx.ShouldBindJSON(&request); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := c.store.User().Create(&user); err != nil {
+		user := &models.User{
+			FullName: request.FullName,
+			Email:    request.Email,
+			Password: request.Password,
+		}
+
+		if err := c.store.User().Create(user); err != nil {
 			ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, resptypes.NewUserResponse(&user))
+		ctx.JSON(http.StatusCreated, resptypes.NewUserResponse(user))
 	}
 }
 
 func (c *Controller) loginHandler() gin.HandlerFunc {
-	var loginCredentials struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+	type LoginCredentials struct {
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
+		var loginCredentials LoginCredentials
 		if err := ctx.ShouldBindJSON(&loginCredentials); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
