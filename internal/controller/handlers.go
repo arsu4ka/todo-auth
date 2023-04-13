@@ -59,8 +59,8 @@ func (c *Controller) updateTodo() gin.HandlerFunc {
 		ID uint `uri:"id" binding:"required"`
 	}
 	type RequestBody struct {
-		Task      string `json:"task" bindinig:"required"`
-		Completed bool   `json:"completed" bindinig:"required"`
+		Task      string `json:"task" binding:"required"`
+		Completed bool   `json:"completed" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
 		var requestBody RequestBody
