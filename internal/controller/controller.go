@@ -48,5 +48,6 @@ func (c *Controller) configureController() {
 	protected.POST("/", c.createTodo())
 	protected.GET("/", c.getAllTodos())
 	protected.PUT("/:id", c.updateTodo())
+	protected.PATCH("/:id", c.patchTodoStatus())
 	protected.DELETE("/:id", c.deleteTodo())
 }

@@ -132,3 +132,46 @@ func (c *Controller) deleteTodo() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(todo))
 	}
 }
+
+func (c *Controller) patchTodoStatus() gin.HandlerFunc {
+	type RequestUri struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	type RequestBody struct {
+		Completed bool `json:"completed" binding:"required"`
+	}
+
+	return func(ctx *gin.Context) {
+		var requestBody RequestBody
+		var requestUri RequestUri
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		todo, err := c.store.ToDo().FindById(requestUri.ID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if todo.UserID != ctx.GetUint("userId") {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "you can edit only your todos"})
+			return
+		}
+
+		todo.Completed = requestBody.Completed
+		if err := c.store.ToDo().UpdateFull(todo); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(todo))
+	}
+}
