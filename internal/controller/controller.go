@@ -15,7 +15,7 @@ type Controller struct {
 }
 
 func NewController(config *Config) (*Controller, error) {
-	db, err := dbs.GetPostgresNoAuth(config.DBConf)
+	db, err := dbs.GetSqlite(config.DBPath)
 	if err != nil {
 		return nil, err
 	}
