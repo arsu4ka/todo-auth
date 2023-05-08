@@ -27,7 +27,6 @@ func GetPostgres(conf *Config) (*gorm.DB, error) {
 }
 
 func GetPostgresNoAuth(conf *Config) (*gorm.DB, error) {
-	fmt.Println(conf.Host)
 	connectionString := fmt.Sprintf("host=%s dbname=%s sslmode=disable",
 		conf.Host,
 		conf.Name,
