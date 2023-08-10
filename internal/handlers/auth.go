@@ -1,22 +1,17 @@
-package controller
+package handlers
 
 import (
 	"net/http"
 
-	"github.com/arsu4ka/todo-auth/internal/controller/resptypes"
-	"github.com/arsu4ka/todo-auth/internal/middleware"
+	"github.com/arsu4ka/todo-auth/internal/handlers/dto"
+	middleware "github.com/arsu4ka/todo-auth/internal/middlewares"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
-func (c *Controller) registerHandler() gin.HandlerFunc {
-	type Request struct {
-		FullName string `json:"full_name" binding:"required"`
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var request Request
+		var request dto.CreateUserDto
 		if err := ctx.ShouldBindJSON(&request); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -28,34 +23,31 @@ func (c *Controller) registerHandler() gin.HandlerFunc {
 			Password: request.Password,
 		}
 
-		if err := c.store.User().Create(user); err != nil {
+		if err := rh.User.Create(user); err != nil {
 			ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, resptypes.NewUserResponse(user))
+		ctx.JSON(http.StatusCreated, dto.NewResponseUserDto(user))
 	}
 }
 
-func (c *Controller) loginHandler() gin.HandlerFunc {
-	type LoginCredentials struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+func (rh *RequestsHandler) LoginHandler(tokenSecret string, tokenExpiration int) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var loginCredentials LoginCredentials
+		var loginCredentials dto.LoginUserDto
 		if err := ctx.ShouldBindJSON(&loginCredentials); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		user, err := c.store.User().FindByEmail(loginCredentials.Email)
+		user, err := rh.User.FindByEmail(loginCredentials.Email)
 		if err != nil || !user.HasPassword(loginCredentials.Password) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
 
-		authToken, err := middleware.GenerateToken(user.ID, c.config.TokenExpiration, c.config.TokenSecret)
+		tokenSecretBytes := []byte(tokenSecret)
+		authToken, err := middleware.GenerateToken(user.ID, tokenExpiration, tokenSecretBytes)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

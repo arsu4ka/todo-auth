@@ -1,10 +1,10 @@
 package main
 
-import "github.com/arsu4ka/todo-auth/internal/controller"
+import "github.com/arsu4ka/todo-auth/internal/server"
 
 func main() {
-	config := controller.DefaultConfig()
-	server, err := controller.NewController(config)
+	config := server.DefaultConfig()
+	server, err := server.NewServer(config)
 	if err != nil {
 		panic(err)
 	}

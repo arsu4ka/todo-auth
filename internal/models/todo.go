@@ -1,8 +1,8 @@
 package models
 
-type ToDo struct {
+type Todo struct {
 	ID        uint
 	Task      string
-	Completed bool
+	Completed bool `gorm:"default:false"`
 	UserID    uint
 }

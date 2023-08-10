@@ -37,6 +37,6 @@ func GetPostgresNoAuth(conf *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&models.User{}, &models.ToDo{})
+	db.AutoMigrate(&models.User{}, &models.Todo{})
 	return db, nil
 }

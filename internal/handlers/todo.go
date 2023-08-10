@@ -1,69 +1,61 @@
-package controller
+package handlers
 
 import (
 	"net/http"
 
-	"github.com/arsu4ka/todo-auth/internal/controller/resptypes"
+	"github.com/arsu4ka/todo-auth/internal/handlers/dto"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
-func (c *Controller) getAllTodos() gin.HandlerFunc {
+func (rh *RequestsHandler) GetAllTodos() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID := ctx.GetUint("userId")
 
-		todos, err := c.store.ToDo().GetByUser(userID)
+		todos, err := rh.Todo.FindByUser(userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		todosSanitized := []*resptypes.TodoResponse{}
+		todosSanitized := []*dto.ResponseTodoDto{}
 		for _, todo := range todos {
-			todosSanitized = append(todosSanitized, resptypes.NewTodoResponse(todo))
+			todosSanitized = append(todosSanitized, dto.NewResponseTodoDto(todo))
 		}
 		ctx.JSON(http.StatusOK, todosSanitized)
 	}
 }
 
-func (c *Controller) createTodo() gin.HandlerFunc {
-	type Request struct {
-		Task      string `json:"task" binding:"required"`
-		Completed bool   `json:"completed"`
-	}
+func (rh *RequestsHandler) CreateTodo() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var request Request
+		var request dto.CreateTodoDto
 		if err := ctx.ShouldBindJSON(&request); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		userID := ctx.GetUint("userId")
-		todo := &models.ToDo{
+		todo := &models.Todo{
 			Task:      request.Task,
 			Completed: request.Completed,
 			UserID:    userID,
 		}
 
-		if err := c.store.ToDo().Create(todo); err != nil {
+		if err := rh.Todo.Create(todo); err != nil {
 			ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, resptypes.NewTodoResponse(todo))
+		ctx.JSON(http.StatusCreated, dto.NewResponseTodoDto(todo))
 	}
 }
 
-func (c *Controller) updateTodo() gin.HandlerFunc {
+func (rh *RequestsHandler) UpdateTodo() gin.HandlerFunc {
 	type RequestUri struct {
 		ID uint `uri:"id" binding:"required"`
 	}
-	type RequestBody struct {
-		Task      string `json:"task" binding:"required"`
-		Completed bool   `json:"completed" binding:"required"`
-	}
 	return func(ctx *gin.Context) {
-		var requestBody RequestBody
+		var requestBody dto.UpdateTodoDto
 		var requestUri RequestUri
 
 		if err := ctx.ShouldBindUri(&requestUri); err != nil {
@@ -76,7 +68,7 @@ func (c *Controller) updateTodo() gin.HandlerFunc {
 			return
 		}
 
-		todo, err := c.store.ToDo().FindById(requestUri.ID)
+		todo, err := rh.Todo.FindById(requestUri.ID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -87,22 +79,21 @@ func (c *Controller) updateTodo() gin.HandlerFunc {
 			return
 		}
 
-		updatedTodo := &models.ToDo{
-			ID:        requestUri.ID,
+		updatedTodo := &models.Todo{
 			Task:      requestBody.Task,
 			Completed: requestBody.Completed,
 			UserID:    todo.UserID,
 		}
 
-		if err := c.store.ToDo().UpdateFull(updatedTodo); err != nil {
+		if err := rh.Todo.Update(requestUri.ID, updatedTodo); err != nil {
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(updatedTodo))
+		ctx.JSON(http.StatusOK, dto.NewResponseTodoDto(updatedTodo))
 	}
 }
 
-func (c *Controller) deleteTodo() gin.HandlerFunc {
+func (rh *RequestsHandler) DeleteTodo() gin.HandlerFunc {
 	type RequestUri struct {
 		ID uint `uri:"id" binding:"required"`
 	}
@@ -114,7 +105,7 @@ func (c *Controller) deleteTodo() gin.HandlerFunc {
 			return
 		}
 
-		todo, err := c.store.ToDo().FindById(requestUri.ID)
+		todo, err := rh.Todo.FindById(requestUri.ID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -125,10 +116,10 @@ func (c *Controller) deleteTodo() gin.HandlerFunc {
 			return
 		}
 
-		if err := c.store.ToDo().Delete(requestUri.ID); err != nil {
+		if err := rh.Todo.Delete(requestUri.ID); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
-		ctx.JSON(http.StatusOK, resptypes.NewTodoResponse(todo))
+		ctx.JSON(http.StatusOK, dto.NewResponseTodoDto(todo))
 	}
 }
