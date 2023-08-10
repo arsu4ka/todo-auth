@@ -16,7 +16,7 @@ type ApiServer struct {
 	config *Config
 }
 
-func NewController(config *Config) (*ApiServer, error) {
+func NewServer(config *Config) (*ApiServer, error) {
 	db, err := dbs.GetPostgresNoAuth(config.DBConf)
 	if err != nil {
 		return nil, err
