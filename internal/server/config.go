@@ -1,4 +1,4 @@
-package controller
+package server
 
 import (
 	"os"
@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Port            string
-	TokenSecret     []byte
+	TokenSecret     string
 	TokenExpiration int
 	DBConf          *dbs.Config
 }
@@ -21,7 +21,7 @@ func DefaultConfig() *Config {
 
 	return &Config{
 		Port:            os.Getenv("PORT"),
-		TokenSecret:     []byte(os.Getenv("TOKEN_SECRET")),
+		TokenSecret:     os.Getenv("TOKEN_SECRET"),
 		TokenExpiration: tokenExpiration,
 		DBConf: &dbs.Config{
 			Host:     os.Getenv("PGHOST"),

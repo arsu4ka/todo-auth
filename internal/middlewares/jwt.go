@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,18 +19,20 @@ func GenerateToken(userId uint, expTime int, secretKey []byte) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenString, err := token.SignedString(secretKey)
+	signedToken, err := token.SignedString(secretKey)
 
 	if err != nil {
 		return "", err
 	}
 
-	return tokenString, nil
+	return signedToken, nil
 }
 
-func JWTMiddleware(secretKey []byte) gin.HandlerFunc {
+func JWTMiddleware(secretKeyString string) gin.HandlerFunc {
+	var secretKey = []byte(secretKeyString)
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		tokenHeaderValue := c.GetHeader("Authorization")
+		tokenString := strings.Replace(tokenHeaderValue, "Bearer ", "", 1)
 
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is required"})
