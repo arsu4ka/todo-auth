@@ -32,8 +32,12 @@ func (td *TodoService) FindByUser(userID uint) ([]*models.Todo, error) {
 	return Todos, result.Error
 }
 
-func (td *TodoService) Create(Todo *models.Todo) error {
-	return td.db.Create(Todo).Error
+func (td *TodoService) Create(todo *models.Todo) error {
+	if err := todo.Validate(); err != nil {
+		return err
+	}
+
+	return td.db.Create(todo).Error
 }
 
 func (td *TodoService) Update(id uint, updatedTodo *models.Todo) error {
