@@ -6,3 +6,7 @@ type Todo struct {
 	Completed bool `gorm:"default:false"`
 	UserID    uint
 }
+
+func (t *Todo) Validate() error {
+	return nil
+}
