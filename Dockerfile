@@ -1,12 +1,4 @@
-# Use the official PostgreSQL image as base
-FROM postgres:latest as postgres
-
-# Set environment variables for PostgreSQL
-ENV POSTGRES_DB=todogo
-ENV POSTGRES_USER=postgres
-ENV POSTGRES_PASSWORD=admin
-
-# Switch to the Go image
+# Specify Go image
 FROM golang:latest as goapi
 
 # Set the working directory
