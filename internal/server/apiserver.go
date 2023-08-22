@@ -17,7 +17,7 @@ type ApiServer struct {
 }
 
 func NewServer(config *Config) (*ApiServer, error) {
-	db, err := dbs.GetPostgresNoAuth(config.DBConf)
+	db, err := dbs.GetPostgres(config.DBConf)
 	if err != nil {
 		return nil, err
 	}
