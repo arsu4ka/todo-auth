@@ -5,28 +5,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
-
-func GenerateToken(userId uint, expTime int, secretKey []byte) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userId,
-		"exp":     time.Now().Add(time.Hour * time.Duration(expTime)).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	signedToken, err := token.SignedString(secretKey)
-
-	if err != nil {
-		return "", err
-	}
-
-	return signedToken, nil
-}
 
 func JWTMiddleware(secretKeyString string) gin.HandlerFunc {
 	var secretKey = []byte(secretKeyString)
