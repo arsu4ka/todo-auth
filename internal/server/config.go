@@ -10,6 +10,9 @@ import (
 
 type Config struct {
 	Port            string
+	BaseURL         string
+	SMTPEmail       string
+	SMTPPassword    string
 	TokenSecret     string
 	TokenExpiration int
 	DBConf          *dbs.Config
@@ -21,6 +24,9 @@ func DefaultConfig() *Config {
 
 	return &Config{
 		Port:            os.Getenv("PORT"),
+		BaseURL:         os.Getenv("URL"),
+		SMTPEmail:       os.Getenv("SMTP_EMAIL"),
+		SMTPPassword:    os.Getenv("SMTP_PASSWORD"),
 		TokenSecret:     os.Getenv("TOKEN_SECRET"),
 		TokenExpiration: tokenExpiration,
 		DBConf: &dbs.Config{
