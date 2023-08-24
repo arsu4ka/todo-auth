@@ -22,7 +22,7 @@ func GetPostgres(conf *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err = db.AutoMigrate(&models.User{}, &models.Todo{}); err != nil {
+	if err = db.AutoMigrate(&models.User{}, &models.Todo{}, &models.Verification{}); err != nil {
 		return nil, err
 	}
 
