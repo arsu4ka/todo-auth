@@ -1,13 +1,34 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/arsu4ka/todo-auth/internal/handlers/dto"
-	middleware "github.com/arsu4ka/todo-auth/internal/middlewares"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+func GenerateToken(userId uint, expTime int, secretKey []byte) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id": userId,
+		"exp":     time.Now().Add(time.Hour * time.Duration(expTime)).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString(secretKey)
+
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
 
 func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -21,6 +42,7 @@ func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 			FullName: request.FullName,
 			Email:    request.Email,
 			Password: request.Password,
+			Active:   false,
 		}
 
 		if err := user.HashPassword(); err != nil {
@@ -32,7 +54,19 @@ func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, dto.NewResponseUserDto(user))
+		verif := models.NewVerification(user.ID)
+		if err := rh.Verification.Create(verif); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		err := rh.Email.SendVerificationLink(user.Email, user.FullName, verif.ID.String())
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusCreated, gin.H{"message": "Success! Now you should verify your email."})
 	}
 }
 
@@ -50,12 +84,57 @@ func (rh *RequestsHandler) LoginHandler(tokenSecret string, tokenExpiration int)
 			return
 		}
 
-		authToken, err := middleware.GenerateToken(user.ID, tokenExpiration, []byte(tokenSecret))
+		authToken, err := GenerateToken(user.ID, tokenExpiration, []byte(tokenSecret))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{"status": "authenticated", "token": authToken})
+	}
+}
+
+func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
+	type RequestUri struct {
+		verifId string `uri:"id" binding:"required"`
+	}
+	return func(ctx *gin.Context) {
+		var requestUri RequestUri
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		verifUUID, err := uuid.Parse(requestUri.verifId)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		verif, err := rh.Verification.FindById(verifUUID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := rh.User.FindByID(verif.UserID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+				return
+			} else {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
+		user.Active = true
+		if err := rh.User.Update(user); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, dto.NewResponseUserDto(user))
 	}
 }
