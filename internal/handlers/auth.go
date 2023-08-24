@@ -23,6 +23,10 @@ func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 			Password: request.Password,
 		}
 
+		if err := user.HashPassword(); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
 		if err := rh.User.Create(user); err != nil {
 			ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 			return
@@ -41,13 +45,12 @@ func (rh *RequestsHandler) LoginHandler(tokenSecret string, tokenExpiration int)
 		}
 
 		user, err := rh.User.FindByEmail(loginCredentials.Email)
-		if err != nil || !user.HasPassword(loginCredentials.Password) {
+		if err != nil || !user.ComparePassword(loginCredentials.Password) {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
 
-		tokenSecretBytes := []byte(tokenSecret)
-		authToken, err := middleware.GenerateToken(user.ID, tokenExpiration, tokenSecretBytes)
+		authToken, err := middleware.GenerateToken(user.ID, tokenExpiration, []byte(tokenSecret))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

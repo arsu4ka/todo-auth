@@ -22,21 +22,9 @@ func GetPostgres(conf *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&models.User{})
-	return db, nil
-}
-
-func GetPostgresNoAuth(conf *Config) (*gorm.DB, error) {
-	connectionString := fmt.Sprintf("host=%s dbname=%s sslmode=disable",
-		conf.Host,
-		conf.Name,
-	)
-
-	db, err := gorm.Open(postgres.Open(connectionString))
-	if err != nil {
+	if err = db.AutoMigrate(&models.User{}, &models.Todo{}); err != nil {
 		return nil, err
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Todo{})
 	return db, nil
 }

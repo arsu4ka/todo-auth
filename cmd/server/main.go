@@ -9,5 +9,7 @@ func main() {
 		panic(err)
 	}
 
-	panic(server.Start())
+	if err := server.Start(); err != nil {
+		panic(err)
+	}
 }
