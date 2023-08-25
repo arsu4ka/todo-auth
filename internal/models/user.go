@@ -10,7 +10,7 @@ type User struct {
 	ID       uint
 	FullName string
 	Email    string `gorm:"unique"`
-	Active   bool
+	Active   bool   `gorm:"default:false"`
 	Password string
 }
 
