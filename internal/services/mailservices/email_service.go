@@ -36,9 +36,9 @@ func NewEmailService(apiUrl, smtpEmail, smtpPassword string) *EmailService {
 func (es *EmailService) SendVerificationLink(toAdress, toName, token string) error {
 	var verificationLink string
 	if es.domain[len(es.domain)-1] == '/' {
-		verificationLink = es.domain + "auth/verify/" + token
+		verificationLink = es.domain + "api/auth/verify/" + token
 	} else {
-		verificationLink = es.domain + "/auth/verify/" + token
+		verificationLink = es.domain + "/api/auth/verify/" + token
 	}
 
 	es.Message.SetHeader("To", toAdress)
