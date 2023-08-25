@@ -4,6 +4,7 @@ import (
 	"github.com/arsu4ka/todo-auth/internal/dbs"
 	"github.com/arsu4ka/todo-auth/internal/handlers"
 	middleware "github.com/arsu4ka/todo-auth/internal/middlewares"
+	"github.com/arsu4ka/todo-auth/internal/services/mailservices"
 	"github.com/arsu4ka/todo-auth/internal/services/sqlservices"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -42,14 +43,17 @@ func (s *ApiServer) configureServer() {
 	)
 
 	handler := handlers.RequestsHandler{
-		User: sqlservices.NewUserService(s.db),
-		Todo: sqlservices.NewTodoService(s.db),
+		User:         sqlservices.NewUserService(s.db),
+		Todo:         sqlservices.NewTodoService(s.db),
+		Verification: sqlservices.NewVerificationService(s.db),
+		Email:        mailservices.NewEmailService(s.config.BaseURL, s.config.SMTPEmail, s.config.SMTPPassword),
 	}
 	api := s.router.Group("api/")
 
 	authGroup := api.Group("auth/")
 	authGroup.POST("/signup", handler.RegisterHandler())
 	authGroup.POST("/login", handler.LoginHandler(s.config.TokenSecret, s.config.TokenExpiration))
+	authGroup.GET("/verify/:id", handler.VerifyHandler())
 
 	todoGroup := api.Group("todo/", middleware.JWTMiddleware(s.config.TokenSecret))
 	todoGroup.POST("/", handler.CreateTodo())

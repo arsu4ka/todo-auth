@@ -33,3 +33,7 @@ func (ur *UserService) Create(user *models.User) error {
 	}
 	return ur.db.Create(user).Error
 }
+
+func (ur *UserService) Update(user *models.User) error {
+	return ur.db.Save(user).Error
+}
