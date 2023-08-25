@@ -84,6 +84,11 @@ func (rh *RequestsHandler) LoginHandler(tokenSecret string, tokenExpiration int)
 			return
 		}
 
+		if !user.Active {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "your email hasn't been verified yet"})
+			return
+		}
+
 		authToken, err := GenerateToken(user.ID, tokenExpiration, []byte(tokenSecret))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -96,7 +101,7 @@ func (rh *RequestsHandler) LoginHandler(tokenSecret string, tokenExpiration int)
 
 func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
 	type RequestUri struct {
-		verifId string `uri:"id" binding:"required"`
+		VerifId string `uri:"id" binding:"required,uuid"`
 	}
 	return func(ctx *gin.Context) {
 		var requestUri RequestUri
@@ -106,7 +111,7 @@ func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
 			return
 		}
 
-		verifUUID, err := uuid.Parse(requestUri.verifId)
+		verifUUID, err := uuid.Parse(requestUri.VerifId)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

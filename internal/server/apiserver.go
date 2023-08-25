@@ -55,7 +55,7 @@ func (s *ApiServer) configureServer() {
 	authGroup.POST("/login", handler.LoginHandler(s.config.TokenSecret, s.config.TokenExpiration))
 	authGroup.GET("/verify/:id", handler.VerifyHandler())
 
-	todoGroup := api.Group("todo/", middleware.JWTMiddleware(s.config.TokenSecret), middleware.ActiveUserMiddleware(&handler))
+	todoGroup := api.Group("todo/", middleware.JWTMiddleware(s.config.TokenSecret))
 	todoGroup.POST("/", handler.CreateTodo())
 	todoGroup.GET("/", handler.GetAllTodos())
 	todoGroup.PUT("/:id", handler.UpdateTodo())
