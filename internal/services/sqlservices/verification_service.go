@@ -28,6 +28,6 @@ func (vs *VerificationService) FindById(id uuid.UUID) (*models.Verification, err
 
 func (vs *VerificationService) FindByUserId(userID uint) (*models.Verification, error) {
 	var verif models.Verification
-	result := vs.db.Where("userID = ?", userID).First(&verif)
+	result := vs.db.Where("user_id = ?", userID).First(&verif)
 	return &verif, result.Error
 }
