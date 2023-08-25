@@ -140,6 +140,7 @@ func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
 			return
 		}
 
+		rh.Verification.Delete(verif.ID)
 		ctx.JSON(http.StatusOK, dto.NewResponseUserDto(user))
 	}
 }

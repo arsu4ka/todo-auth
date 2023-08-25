@@ -31,3 +31,7 @@ func (vs *VerificationService) FindByUserId(userID uint) (*models.Verification, 
 	result := vs.db.Where("user_id = ?", userID).First(&verif)
 	return &verif, result.Error
 }
+
+func (vs *VerificationService) Delete(id uuid.UUID) error {
+	return vs.db.Delete(&models.Verification{}, id).Error
+}

@@ -24,6 +24,7 @@ type IVerificationService interface {
 	Create(verif *models.Verification) error
 	FindById(id uuid.UUID) (*models.Verification, error)
 	FindByUserId(userID uint) (*models.Verification, error)
+	Delete(id uuid.UUID) error
 }
 
 type IEmailService interface {
