@@ -1,37 +1,39 @@
 package mailservices
 
 import (
+	"crypto/tls"
 	"fmt"
 
 	"gopkg.in/gomail.v2"
 )
 
 const (
-	smtpAuthAddress = "smtp.gmail.com"
+	smtpAuthAddress = "smtp.office365.com"
 	smtpServerPort  = 587
 )
 
-type EmailSender struct {
+type EmailService struct {
 	Message *gomail.Message
 	dailer  *gomail.Dialer
 	domain  string
 }
 
 // NewEmailSender
-func NewEmailSender(domain, senderAddress, smtpPassword string) *EmailSender {
+func NewEmailService(apiUrl, smtpEmail, smtpPassword string) *EmailService {
 	m := gomail.NewMessage()
-	dailer := gomail.NewDialer(smtpAuthAddress, smtpServerPort, senderAddress, smtpPassword)
-	m.SetHeader("From", senderAddress)
+	dailer := gomail.NewDialer(smtpAuthAddress, smtpServerPort, smtpEmail, smtpPassword)
+	dailer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	m.SetHeader("From", smtpEmail)
 
-	return &EmailSender{
+	return &EmailService{
 		Message: m,
 		dailer:  dailer,
-		domain:  domain,
+		domain:  apiUrl,
 	}
 }
 
 // Send
-func (es *EmailSender) SendVerificationLink(toAdress, toName, token string) error {
+func (es *EmailService) SendVerificationLink(toAdress, toName, token string) error {
 	var verificationLink string
 	if es.domain[len(es.domain)-1] == '/' {
 		verificationLink = es.domain + "auth/verify/" + token

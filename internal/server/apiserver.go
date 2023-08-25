@@ -46,7 +46,7 @@ func (s *ApiServer) configureServer() {
 		User:         sqlservices.NewUserService(s.db),
 		Todo:         sqlservices.NewTodoService(s.db),
 		Verification: sqlservices.NewVerificationService(s.db),
-		Email:        mailservices.NewEmailSender(s.config.BaseURL, s.config.SMTPEmail, s.config.SMTPPassword),
+		Email:        mailservices.NewEmailService(s.config.BaseURL, s.config.SMTPEmail, s.config.SMTPPassword),
 	}
 	api := s.router.Group("api/")
 
