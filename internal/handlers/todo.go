@@ -36,9 +36,10 @@ func (rh *RequestsHandler) CreateTodo() gin.HandlerFunc {
 
 		userID := ctx.GetUint("userId")
 		todo := &models.Todo{
-			Task:      request.Task,
-			Completed: request.Completed,
-			UserID:    userID,
+			Task:        request.Task,
+			Description: request.Description,
+			Completed:   request.Completed,
+			UserID:      userID,
 		}
 
 		if err := rh.Todo.Create(todo); err != nil {
@@ -80,9 +81,10 @@ func (rh *RequestsHandler) UpdateTodo() gin.HandlerFunc {
 		}
 
 		updatedTodo := &models.Todo{
-			Task:      requestBody.Task,
-			Completed: requestBody.Completed,
-			UserID:    todo.UserID,
+			Task:        requestBody.Task,
+			Description: requestBody.Description,
+			Completed:   requestBody.Completed,
+			UserID:      todo.UserID,
 		}
 
 		if err := rh.Todo.Update(requestUri.ID, updatedTodo); err != nil {
