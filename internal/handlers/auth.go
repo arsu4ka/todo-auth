@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -60,11 +61,12 @@ func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 			return
 		}
 
-		err := rh.Email.SendVerificationLink(user.Email, user.FullName, verif.ID.String())
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
-			return
-		}
+		go func() {
+			err := rh.Email.SendVerificationLink(user.Email, user.FullName, verif.ID.String())
+			if err != nil {
+				fmt.Println("Error sending email:", err)
+			}
+		}()
 
 		ctx.JSON(http.StatusCreated, gin.H{"message": "Success! Now you should verify your email."})
 	}
@@ -140,7 +142,12 @@ func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
 			return
 		}
 
-		rh.Verification.Delete(verif.ID)
+		go func() {
+			err := rh.Verification.Delete(verif.ID)
+			if err != nil {
+				fmt.Printf("Error while deleting verif code: %s\n", err.Error())
+			}
+		}()
 		ctx.JSON(http.StatusOK, dto.NewResponseUserDto(user))
 	}
 }
