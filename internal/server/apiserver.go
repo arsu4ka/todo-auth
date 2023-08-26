@@ -58,6 +58,7 @@ func (s *ApiServer) configureServer() {
 	todoGroup := api.Group("todo/", middleware.JWTMiddleware(s.config.TokenSecret))
 	todoGroup.POST("/", handler.CreateTodo())
 	todoGroup.GET("/", handler.GetAllTodos())
+	todoGroup.GET("/:id", handler.GetOneTodo())
 	todoGroup.PUT("/:id", handler.UpdateTodo())
 	todoGroup.DELETE("/:id", handler.DeleteTodo())
 }
