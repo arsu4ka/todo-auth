@@ -35,5 +35,9 @@ func (ur *UserService) Create(user *models.User) error {
 }
 
 func (ur *UserService) Update(user *models.User) error {
+	if err := user.Validate(); err != nil {
+		return err
+	}
+
 	return ur.db.Save(user).Error
 }
