@@ -27,6 +27,14 @@ type IVerificationService interface {
 	Delete(id uuid.UUID) error
 }
 
+type IResetService interface {
+	Create(reset *models.Reset) error
+	FindById(id uuid.UUID) (*models.Reset, error)
+	FindByUserId(userID uint) (*models.Reset, error)
+	Delete(id uuid.UUID) error
+}
+
 type IEmailService interface {
 	SendVerificationLink(toAdress, toName, token string) error
+	SendResetLink(toAddress, toName, token string) error
 }

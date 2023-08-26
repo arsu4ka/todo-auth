@@ -6,5 +6,6 @@ type RequestsHandler struct {
 	User         services.IUserService
 	Todo         services.ITodoService
 	Verification services.IVerificationService
+	Reset        services.IResetService
 	Email        services.IEmailService
 }
