@@ -32,6 +32,17 @@ func NewEmailService(apiUrl, smtpEmail, smtpPassword string) *EmailService {
 	}
 }
 
+func (es *EmailService) sendEmail(toAddress, subject, body string) error {
+	es.Message.SetHeader("To", toAddress)
+	es.Message.SetHeader("Subject", subject)
+	es.Message.SetBody("text/plain", body)
+
+	if err := es.dailer.DialAndSend(es.Message); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Send
 func (es *EmailService) SendVerificationLink(toAdress, toName, token string) error {
 	var verificationLink string
@@ -41,14 +52,9 @@ func (es *EmailService) SendVerificationLink(toAdress, toName, token string) err
 		verificationLink = es.domain + "/api/auth/verify/" + token
 	}
 
-	es.Message.SetHeader("To", toAdress)
-	es.Message.SetHeader("Subject", "Todo App Email Verification")
+	subject := "Todo App Email Verification"
 	bodyFormat := "Hello, %s\n\nVisit this link to verify your email address: %s"
-	es.Message.SetBody("text/plain", fmt.Sprintf(bodyFormat, toName, verificationLink))
+	body := fmt.Sprintf(bodyFormat, toName, verificationLink)
 
-	if err := es.dailer.DialAndSend(es.Message); err != nil {
-		return err
-	}
-
-	return nil
+	return es.sendEmail(toAdress, subject, body)
 }
