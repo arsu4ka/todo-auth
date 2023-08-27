@@ -62,9 +62,9 @@ func (es *EmailService) SendVerificationLink(toAdress, toName, token string) err
 func (es *EmailService) SendResetLink(toAddress, toName, token string) error {
 	var resetLink string
 	if es.domain[len(es.domain)-1] == '/' {
-		resetLink = es.domain + "api/reset/" + token
+		resetLink = es.domain + "api/auth/reset/" + token
 	} else {
-		resetLink = es.domain + "/api/reset/" + token
+		resetLink = es.domain + "/api/auth/reset/" + token
 	}
 
 	subject := "Todo App Password Reset"
