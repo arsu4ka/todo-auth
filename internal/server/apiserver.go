@@ -46,6 +46,7 @@ func (s *ApiServer) configureServer() {
 		User:         sqlservices.NewUserService(s.db),
 		Todo:         sqlservices.NewTodoService(s.db),
 		Verification: sqlservices.NewVerificationService(s.db),
+		Reset:        sqlservices.NewResetService(s.db),
 		Email:        mailservices.NewEmailService(s.config.BaseURL, s.config.SMTPEmail, s.config.SMTPPassword),
 	}
 	api := s.router.Group("api/")
@@ -54,10 +55,13 @@ func (s *ApiServer) configureServer() {
 	authGroup.POST("/signup", handler.RegisterHandler())
 	authGroup.POST("/login", handler.LoginHandler(s.config.TokenSecret, s.config.TokenExpiration))
 	authGroup.GET("/verify/:id", handler.VerifyHandler())
+	authGroup.POST("/reset", handler.ResetPasswordRequestHandler())
+	authGroup.POST("/reset/:id", handler.ResetPasswordFinalHandler())
 
 	todoGroup := api.Group("todo/", middleware.JWTMiddleware(s.config.TokenSecret))
 	todoGroup.POST("/", handler.CreateTodo())
 	todoGroup.GET("/", handler.GetAllTodos())
+	todoGroup.GET("/:id", handler.GetOneTodo())
 	todoGroup.PUT("/:id", handler.UpdateTodo())
 	todoGroup.DELETE("/:id", handler.DeleteTodo())
 }

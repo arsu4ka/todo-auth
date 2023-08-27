@@ -1,7 +1,7 @@
 version: '3'
 services:
   postgres:
-    image: postgres:13.5
+    image: postgres:alpine
     restart: always
     environment:
       - POSTGRES_DB=todogo

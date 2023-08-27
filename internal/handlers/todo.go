@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/arsu4ka/todo-auth/internal/handlers/dto"
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (rh *RequestsHandler) GetAllTodos() gin.HandlerFunc {
@@ -23,6 +25,36 @@ func (rh *RequestsHandler) GetAllTodos() gin.HandlerFunc {
 			todosSanitized = append(todosSanitized, dto.NewResponseTodoDto(todo))
 		}
 		ctx.JSON(http.StatusOK, todosSanitized)
+	}
+}
+
+func (rh *RequestsHandler) GetOneTodo() gin.HandlerFunc {
+	type RequestUri struct {
+		ID uint `uri:"id" binding:"required"`
+	}
+	return func(ctx *gin.Context) {
+		var requestUri RequestUri
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		userId := ctx.GetUint("userId")
+		todo, err := rh.Todo.FindById(requestUri.ID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
+		if todo.UserID != userId {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		}
+
+		ctx.JSON(http.StatusOK, dto.NewResponseTodoDto(todo))
 	}
 }
 

@@ -3,7 +3,6 @@ package models
 import (
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/asaskevich/govalidator"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -29,13 +28,12 @@ func (u *User) Validate() error {
 			for _, name := range names {
 				rule1 := govalidator.IsAlpha(name)
 				rule2 := name != ""
-				rule3 := unicode.IsUpper(rune(name[0]))
-				if !(rule1 && rule2 && rule3) {
+				if !(rule1 && rule2) {
 					return false
 				}
 			}
 			return true
-		}, "must be a valid email address")),
+		}, "must be a valid full name")),
 	)
 }
 

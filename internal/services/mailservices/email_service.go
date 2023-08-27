@@ -58,3 +58,18 @@ func (es *EmailService) SendVerificationLink(toAdress, toName, token string) err
 
 	return es.sendEmail(toAdress, subject, body)
 }
+
+func (es *EmailService) SendResetLink(toAddress, toName, token string) error {
+	var resetLink string
+	if es.domain[len(es.domain)-1] == '/' {
+		resetLink = es.domain + "api/auth/reset/" + token
+	} else {
+		resetLink = es.domain + "/api/auth/reset/" + token
+	}
+
+	subject := "Todo App Password Reset"
+	bodyFormat := "Hello, %s\n\nTo reset your password send POST request to %s with your new password"
+	body := fmt.Sprintf(bodyFormat, toName, resetLink)
+
+	return es.sendEmail(toAddress, subject, body)
+}

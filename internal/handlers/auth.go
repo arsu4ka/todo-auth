@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -60,11 +61,12 @@ func (rh *RequestsHandler) RegisterHandler() gin.HandlerFunc {
 			return
 		}
 
-		err := rh.Email.SendVerificationLink(user.Email, user.FullName, verif.ID.String())
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
-			return
-		}
+		go func() {
+			err := rh.Email.SendVerificationLink(user.Email, user.FullName, verif.ID.String())
+			if err != nil {
+				fmt.Println("Error sending email:", err)
+			}
+		}()
 
 		ctx.JSON(http.StatusCreated, gin.H{"message": "Success! Now you should verify your email."})
 	}
@@ -140,7 +142,120 @@ func (rh *RequestsHandler) VerifyHandler() gin.HandlerFunc {
 			return
 		}
 
-		rh.Verification.Delete(verif.ID)
+		go func() {
+			err := rh.Verification.Delete(verif.ID)
+			if err != nil {
+				fmt.Printf("Error while deleting verif code: %s\n", err.Error())
+			}
+		}()
+		ctx.JSON(http.StatusOK, dto.NewResponseUserDto(user))
+	}
+}
+
+func (rh *RequestsHandler) ResetPasswordRequestHandler() gin.HandlerFunc {
+	type RequestBody struct {
+		Email string `json:"email" binding:"required"`
+	}
+	return func(ctx *gin.Context) {
+		var requestBody RequestBody
+
+		if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := rh.User.FindByEmail(requestBody.Email)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": "user with given email wasn't found"})
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		reset := models.NewReset(user.ID)
+		if err := rh.Reset.Create(reset); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		go func() {
+			err := rh.Email.SendResetLink(user.Email, user.FullName, reset.ID.String())
+			if err != nil {
+				fmt.Println("Error sending email:", err)
+			}
+		}()
+
+		ctx.JSON(http.StatusOK, gin.H{"message": "Success! Check your email box now."})
+	}
+}
+
+func (rh *RequestsHandler) ResetPasswordFinalHandler() gin.HandlerFunc {
+	type RequestUri struct {
+		ResetId string `uri:"id" binding:"required,uuid"`
+	}
+	type RequestBody struct {
+		Password string `json:"password" binding:"required"`
+	}
+	return func(ctx *gin.Context) {
+		var requestUri RequestUri
+		var requestBody RequestBody
+
+		if err := ctx.ShouldBindUri(&requestUri); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		resetUUID, err := uuid.Parse(requestUri.ResetId)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		reset, err := rh.Reset.FindById(resetUUID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+				return
+			} else {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
+		user, err := rh.User.FindByID(reset.UserID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+				return
+			} else {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
+		user.Password = requestBody.Password
+		if err := user.HashPassword(); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
+		if err := rh.User.Update(user); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		go func() {
+			err := rh.Reset.Delete(resetUUID)
+			if err != nil {
+				fmt.Printf("Error while deleting reset code: %s\n", err.Error())
+			}
+		}()
 		ctx.JSON(http.StatusOK, dto.NewResponseUserDto(user))
 	}
 }

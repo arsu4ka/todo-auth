@@ -21,7 +21,7 @@ type ResponseUserDto struct {
 	ID        uint      `json:"id"`
 	FullName  string    `json:"fullName"`
 	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"time"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func NewResponseUserDto(user *models.User) *ResponseUserDto {
