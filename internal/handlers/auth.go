@@ -241,6 +241,10 @@ func (rh *RequestsHandler) ResetPasswordFinalHandler() gin.HandlerFunc {
 		}
 
 		user.Password = requestBody.Password
+		if err := user.HashPassword(); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
 		if err := rh.User.Update(user); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
