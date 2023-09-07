@@ -21,6 +21,6 @@
 go.work
 bin/*
 cmd/test/
-
+.vscode/
 .env
 .vscode/
