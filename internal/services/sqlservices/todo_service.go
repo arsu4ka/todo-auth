@@ -15,14 +15,9 @@ func NewTodoService(db *gorm.DB) *TodoService {
 	}
 }
 
-func (td *TodoService) FindById(id uint) (*models.Todo, error) {
+func (td *TodoService) FindById(id string) (*models.Todo, error) {
 	var Todo models.Todo
 	result := td.db.First(&Todo, id)
-
-	// if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-	// 	return nil, gorm.ErrRecordNotFound
-	// }
-
 	return &Todo, result.Error
 }
 
@@ -40,16 +35,18 @@ func (td *TodoService) Create(todo *models.Todo) error {
 	return td.db.Create(todo).Error
 }
 
-func (td *TodoService) Update(id uint, updatedTodo *models.Todo) error {
+func (td *TodoService) Update(id string, updatedTodo *models.Todo) error {
 	oldTodo, err := td.FindById(id)
 	if err != nil {
 		return err
 	}
 
-	updatedTodo.ID = oldTodo.ID
-	return td.db.Save(updatedTodo).Error
+	oldTodo.Task = updatedTodo.Task
+	oldTodo.Description = updatedTodo.Description
+	oldTodo.Completed = updatedTodo.Completed
+	return td.db.Save(oldTodo).Error
 }
 
-func (td *TodoService) Delete(id uint) error {
+func (td *TodoService) Delete(id string) error {
 	return td.db.Delete(&models.Todo{}, id).Error
 }
