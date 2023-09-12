@@ -16,9 +16,9 @@ func NewTodoService(db *gorm.DB) *TodoService {
 }
 
 func (td *TodoService) FindById(id string) (*models.Todo, error) {
-	var Todo models.Todo
-	result := td.db.First(&Todo, id)
-	return &Todo, result.Error
+	todo := models.Todo{ID: id}
+	result := td.db.First(&todo)
+	return &todo, result.Error
 }
 
 func (td *TodoService) FindByUser(userID uint) ([]*models.Todo, error) {
@@ -49,4 +49,13 @@ func (td *TodoService) Update(id string, updatedTodo *models.Todo) error {
 
 func (td *TodoService) Delete(id string) error {
 	return td.db.Delete(&models.Todo{}, id).Error
+}
+
+func (td *TodoService) GetTotalRecordCount() (int64, error) {
+	var count int64
+	result := td.db.Model(&models.Todo{}).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
 }

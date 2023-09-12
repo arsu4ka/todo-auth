@@ -18,6 +18,7 @@ type ITodoService interface {
 	Create(*models.Todo) error
 	Update(string, *models.Todo) error
 	Delete(string) error
+	GetTotalRecordCount() (int64, error)
 }
 
 type IVerificationService interface {
