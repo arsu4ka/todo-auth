@@ -1,5 +1,5 @@
 # Specify Go image
-FROM golang:latest as goapi
+FROM golang:1.20 as goapi
 
 # Set the working directory
 WORKDIR /app
