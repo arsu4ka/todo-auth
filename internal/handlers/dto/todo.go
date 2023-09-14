@@ -19,7 +19,7 @@ type UpdateTodoDto struct {
 }
 
 type ResponseTodoDto struct {
-	ID          uint   `json:"id"`
+	ID          string `json:"id"`
 	Task        string `json:"task"`
 	Description string `json:"description"`
 	Completed   bool   `json:"completed"`

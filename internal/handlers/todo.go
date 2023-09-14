@@ -30,7 +30,7 @@ func (rh *RequestsHandler) GetAllTodos() gin.HandlerFunc {
 
 func (rh *RequestsHandler) GetOneTodo() gin.HandlerFunc {
 	type RequestUri struct {
-		ID uint `uri:"id" binding:"required"`
+		ID string `uri:"id" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
 		var requestUri RequestUri
@@ -85,7 +85,7 @@ func (rh *RequestsHandler) CreateTodo() gin.HandlerFunc {
 
 func (rh *RequestsHandler) UpdateTodo() gin.HandlerFunc {
 	type RequestUri struct {
-		ID uint `uri:"id" binding:"required"`
+		ID string `uri:"id" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
 		var requestBody dto.UpdateTodoDto
@@ -129,7 +129,7 @@ func (rh *RequestsHandler) UpdateTodo() gin.HandlerFunc {
 
 func (rh *RequestsHandler) DeleteTodo() gin.HandlerFunc {
 	type RequestUri struct {
-		ID uint `uri:"id" binding:"required"`
+		ID string `uri:"id" binding:"required"`
 	}
 	return func(ctx *gin.Context) {
 		var requestUri RequestUri

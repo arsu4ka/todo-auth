@@ -13,11 +13,12 @@ type IUserService interface {
 }
 
 type ITodoService interface {
-	FindById(uint) (*models.Todo, error)
+	FindById(string) (*models.Todo, error)
 	FindByUser(uint) ([]*models.Todo, error)
 	Create(*models.Todo) error
-	Update(uint, *models.Todo) error
-	Delete(uint) error
+	Update(string, *models.Todo) error
+	Delete(string) error
+	GetTotalRecordCount() (int64, error)
 }
 
 type IVerificationService interface {

@@ -24,3 +24,4 @@ cmd/test/
 .vscode/
 .env
 .vscode/
+tmp/

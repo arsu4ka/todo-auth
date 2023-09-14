@@ -12,10 +12,10 @@ import (
 
 type User struct {
 	ID        uint
-	FullName  string `gorm:"not null"`
-	Email     string `gorm:"unique;not null"`
+	FullName  string `gorm:"type:varchar(256);not null"`
+	Email     string `gorm:"type:varchar(256);unique;not null"`
 	Active    bool   `gorm:"default:false;not null"`
-	Password  string `gorm:"not null"`
+	Password  string `gorm:"type:varchar(256);not null"`
 	CreatedAt time.Time
 }
 
