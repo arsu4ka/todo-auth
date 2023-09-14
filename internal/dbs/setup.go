@@ -6,6 +6,7 @@ import (
 	"github.com/arsu4ka/todo-auth/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func GetPostgres(conf *Config) (*gorm.DB, error) {
@@ -17,7 +18,9 @@ func GetPostgres(conf *Config) (*gorm.DB, error) {
 		conf.Password,
 	)
 
-	db, err := gorm.Open(postgres.Open(connectionString))
+	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		return nil, err
 	}
