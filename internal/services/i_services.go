@@ -6,18 +6,18 @@ import (
 )
 
 type IUserService interface {
-	FindByID(uint) (*models.User, error)
-	FindByEmail(string) (*models.User, error)
-	Create(*models.User) error
+	FindByID(id uint) (*models.User, error)
+	FindByEmail(email string) (*models.User, error)
+	Create(user *models.User) error
 	Update(user *models.User) error
 }
 
 type ITodoService interface {
-	FindById(string) (*models.Todo, error)
-	FindByUser(uint) ([]*models.Todo, error)
-	Create(*models.Todo) error
-	Update(string, *models.Todo) error
-	Delete(string) error
+	FindById(id string) (*models.Todo, error)
+	FindByUser(userId uint, limit, page int) ([]*models.Todo, error)
+	Create(todo *models.Todo) error
+	Update(id string, updatedTodo *models.Todo) error
+	Delete(id string) error
 	GetTotalRecordCount() (int64, error)
 }
 

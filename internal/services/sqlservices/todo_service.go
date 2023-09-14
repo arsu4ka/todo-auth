@@ -21,10 +21,24 @@ func (td *TodoService) FindById(id string) (*models.Todo, error) {
 	return &todo, result.Error
 }
 
-func (td *TodoService) FindByUser(userID uint) ([]*models.Todo, error) {
-	var Todos []*models.Todo
-	result := td.db.Where("user_id = ?", userID).Find(&Todos)
-	return Todos, result.Error
+func (td *TodoService) FindByUser(userID uint, limit, page int) ([]*models.Todo, error) {
+	var offset int
+	if page <= 0 {
+		offset = -1
+	} else {
+		offset = (page - 1) * limit
+	}
+	if limit == 0 {
+		limit = -1
+	}
+
+	var todos []*models.Todo
+	result := td.db.Where("user_id = ?", userID).
+		Offset(offset).
+		Limit(limit).
+		Order("updated_at DESC").
+		Find(&todos)
+	return todos, result.Error
 }
 
 func (td *TodoService) Create(todo *models.Todo) error {
