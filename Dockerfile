@@ -1,17 +1,13 @@
-# Specify Go image
 FROM golang:1.20 as goapi
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the Go application code to the container
-COPY . .
+COPY go.mod go.sum .env ./
+COPY ./internal/ ./internal/
+COPY ./cmd/ ./cmd/
 
-# Build the Go application
-RUN go build -o main ./cmd/server/main.go
+RUN go mod tidy
+RUN go mod download
 
-# Expose the port your Go application listens on
-EXPOSE 8080
-
-# Start the Go application
-CMD ["./main"]
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./main ./cmd/server/main.go
+CMD ["/app/main"]
