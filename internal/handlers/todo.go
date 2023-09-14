@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/arsu4ka/todo-auth/internal/handlers/dto"
@@ -11,19 +12,38 @@ import (
 )
 
 func (rh *RequestsHandler) GetAllTodos() gin.HandlerFunc {
+	type RequestQuery struct {
+		Page  int `form:"page"`
+		Limit int `form:"limit"`
+	}
 	return func(ctx *gin.Context) {
-		userID := ctx.GetUint("userId")
+		var requestQuery RequestQuery
+		if err := ctx.ShouldBindQuery(&requestQuery); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-		todos, err := rh.Todo.FindByUser(userID)
+		userID := ctx.GetUint("userId")
+		todos, err := rh.Todo.FindByUser(userID, requestQuery.Limit, requestQuery.Page)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+
+		if requestQuery.Page != 0 && requestQuery.Limit != 0 {
+			recordNum, err := rh.Todo.GetTotalRecordCount()
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			ctx.Header("X-Total-Count", fmt.Sprint(recordNum))
 		}
 
 		todosSanitized := []*dto.ResponseTodoDto{}
 		for _, todo := range todos {
 			todosSanitized = append(todosSanitized, dto.NewResponseTodoDto(todo))
 		}
+
 		ctx.JSON(http.StatusOK, todosSanitized)
 	}
 }
