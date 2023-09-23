@@ -23,5 +23,5 @@ bin/*
 cmd/test/
 .vscode/
 .env
-.vscode/
 tmp/
+.idea/
